@@ -18,9 +18,42 @@ exports.register = async (req, res) => {
   const newUser = { username, email, password: hashedPassword };
 
   const userInDb = await User.countDocuments();
-  if(userInDb === 0) newUser.role = userRoles.ADMIN
-  
-  await User.create(newUser)
+  if (userInDb === 0) newUser.role = userRoles.ADMIN;
 
-  return res.status(201).json({ message: 'Success. Please log in'})
+  await User.create(newUser);
+
+  return res.status(201).json({ message: "Success. Please log in" });
+};
+
+exports.login = async (req, res) => {
+  const { username, password: candidatePassword } = req.body;
+
+  if (!username || !candidatePassword) {
+    throw new Error("You must provde username and password to log in");
+  }
+
+  const user = await User.findOne({ username: username });
+  if (!username) throw new Error("Invalid credentials");
+
+  const isPasswordCorrect = await bcrypt.compare(
+    candidatePassword,
+    user.password
+  );
+
+  if (!isPasswordCorrect) throw new Error("Invalid credentials");
+
+  const jwtPayLoad = {
+    userId: user._id,
+    role: user.role,
+    username: user.username
+  }
+
+  const jwtToken = jwt.sign(jwtPayLoad, process.env.JWT_SECRET, {
+    expiresIn: '2h'
+  })
+
+  return res.json({
+    token: jwtToken,
+    user: jwtPayLoad
+  })
 };
