@@ -3,6 +3,7 @@ const express = require("express");
 const { default: mongoose } = require("mongoose");
 
 const blogRoute  = require('./routes/blogRoute.js')
+const apiRoute = require('./routes/api')
 
 //create express app
 const app = express();
@@ -17,7 +18,10 @@ app.use((req, res, next) => {
 });
 
 //routes
+app.use('/api/v1', apiRoute)
 app.use('/api/v1/blog', blogRoute)
+
+
 
 const port = process.env.PORT || 4000;
 
